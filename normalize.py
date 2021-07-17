@@ -87,8 +87,8 @@ def main():
         line = f.readline()
 
     # Flush the remaining data.
+    print("\nAlmost finished...")
     for l in batch:
-        print("\nAlmost finished...")
         append_to_file(output_file_path, l)
 
     # Save failed lines for analysis.
