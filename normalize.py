@@ -58,16 +58,16 @@ def main():
             total_matched += 1
             matches = re.search(pattern, line)
             row_contents = [
-                matches.group('remote_addr'),
-                matches.group('remote_user'),
-                matches.group('time_local'),
-                matches.group('method'),
-                matches.group('resource'),
-                matches.group('http_version'),
-                matches.group('status'),
-                matches.group('body_bytes_sent'),
-                matches.group('http_ref'),
-                matches.group('user_agent'),
+                quote(matches.group('remote_addr')),
+                quote(matches.group('remote_user')),
+                quote(matches.group('time_local')),
+                quote(matches.group('method')),
+                quote(matches.group('resource')),
+                quote(matches.group('http_version')),
+                quote(matches.group('status')),
+                quote(matches.group('body_bytes_sent')),
+                quote(matches.group('http_ref')),
+                quote(matches.group('user_agent')),
             ]
             batch.append(row_contents)
             if flush == batch_size:
@@ -133,6 +133,10 @@ def regex():
         quo + user_agent + quo + space +
         quo + all_or_nothing + quo + r'$'
     )
+
+
+def quote(any):
+    return f"'{any}'"
 
 
 def append_to_file(file_name, list_of_elem):
