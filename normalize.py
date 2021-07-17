@@ -92,6 +92,7 @@ def main():
         for l in failed_lines:
             append_to_file(failed_lines_file_path, l)
 
+    print("-----------------------------")
     print(f'Total lines: {total_lines}')
     print(f'Total matched: {total_matched}')
     print(f'Total failed: {total_failed}')
