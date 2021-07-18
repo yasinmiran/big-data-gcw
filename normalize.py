@@ -1,4 +1,4 @@
-
+import math
 import os
 import re
 import sys
@@ -16,9 +16,13 @@ def remove_file(file):
 
 
 def main():
-
     input_file = sys.argv[1]
     batch_size = int(sys.argv[2])
+
+    if len(sys.argv) > 3:  # arg0 is invoke-e
+        dry_run_limit = int(sys.argv[3])
+    else:
+        dry_run_limit = math.inf
 
     work_dir = os.path.expanduser('~/bda-cw-workdir')
     failed_lines_file_path = os.path.join(work_dir, "failed.data")
@@ -28,14 +32,11 @@ def main():
 
     remove_file(output_file_path)
     remove_file(failed_lines_file_path)
-
     create_file(output_file_path)
-
-    print("Work directory setup completed.")
+    print("Working directory setup completed.")
 
     pattern = regex()
 
-    # dry_run_limit = 10000
     flush = 0
     total_flushed = 0
     batch = []
@@ -47,27 +48,30 @@ def main():
     total_failed = 0
 
     print("Proceeding to read file...")
+    if dry_run_limit != math.inf:
+        print(f'Dry run with {dry_run_limit}')
+
     f = open(input_file)
     line = f.readline()
     while line:
-        # if (total_lines == dry_run_limit):
-        #     break
+        if total_lines == dry_run_limit:
+            break
         total_lines += 1
         flush += 1
         if bool(re.match(pattern, line)):
             total_matched += 1
             matches = re.search(pattern, line)
             row_contents = [
-                quote(matches.group('remote_addr')),
-                quote(matches.group('remote_user')),
-                quote(matches.group('time_local')),
-                quote(matches.group('method')),
-                quote(matches.group('resource')),
-                quote(matches.group('http_version')),
-                quote(matches.group('status')),
-                quote(matches.group('body_bytes_sent')),
-                quote(matches.group('http_ref')),
-                quote(matches.group('user_agent')),
+                matches.group('remote_addr'),
+                matches.group('remote_user'),
+                matches.group('time_local'),
+                matches.group('method'),
+                matches.group('resource'),
+                matches.group('http_version'),
+                matches.group('status'),
+                matches.group('body_bytes_sent'),
+                matches.group('http_ref'),
+                matches.group('user_agent'),
             ]
             batch.append(row_contents)
             if flush == batch_size:
@@ -104,11 +108,12 @@ def main():
 
 
 def regex():
-
     # First construct the regular expression matching schema to normalize the
     # dataset to make it loadable to data processors.
 
-    remote_addr = r'(?P<remote_addr>(?:\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})|(?:(?:(?:(?:[0-9a-fA-F]){1,4})\:){7}(?:[0-9a-fA-F]){1,4}))'
+    ipv4 = r'(?:\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})'
+    ipv6 = r'(?:(?:(?:(?:[0-9a-fA-F]){1,4})\:){7}(?:[0-9a-fA-F]){1,4})'
+    remote_addr = r'(?P<remote_addr>' + ipv4 + r'|' + ipv6 + r')'
     remote_user = r'(?P<remote_user>\-|.*)'
     time_local = r'(?P<time_local>\-|.*)'
     http_method = r'(?P<method>\-|(?:GET|HEAD|POST|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH))'
@@ -118,25 +123,20 @@ def regex():
     body_bs = r'(?P<body_bytes_sent>\-|\d+)'
     http_ref = r"(?P<http_ref>\-|.*)"
     user_agent = r'(?P<user_agent>\-|.*)'
-
     all_or_nothing = r'(?:\-|.*)'
     space = r'\s{0,3}'
     quo = r'\"'
 
     return (
-        r'^' + space + r'?' + remote_addr + space + all_or_nothing +
-        space + remote_user + space +
-        r'\[' + time_local + r'\]' + space +
-        quo + r'(?:' + http_method + space + resource + space + http_version + r')' + quo +
-        space + status + space + body_bs + space +
-        quo + http_ref + quo + space +
-        quo + user_agent + quo + space +
-        quo + all_or_nothing + quo + r'$'
+            r'^' + space + r'?' + remote_addr + space + all_or_nothing +
+            space + remote_user + space +
+            r'\[' + time_local + r'\]' + space +
+            quo + r'(?:' + http_method + space + resource + space + http_version + r')' + quo +
+            space + status + space + body_bs + space +
+            quo + http_ref + quo + space +
+            quo + user_agent + quo + space +
+            quo + all_or_nothing + quo + r'$'
     )
-
-
-def quote(any):
-    return f"'{any}'"
 
 
 def append_to_file(file_name, list_of_elem):
