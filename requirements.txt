@@ -1,0 +1,16 @@
+aiokafka==0.7.1
+asgiref==3.4.1
+click==8.0.1
+crawlerdetect==0.1.4
+fastapi==0.66.1
+h11==0.12.0
+kafka-python==2.0.2
+py4j==0.10.9
+pydantic==1.8.2
+pyspark==3.1.2
+PyYAML==5.4.1
+starlette==0.14.2
+typing-extensions==3.10.0.0
+ua-parser==0.10.0
+user-agents==2.2.0
+uvicorn==0.14.0
