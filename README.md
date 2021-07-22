@@ -7,7 +7,7 @@ Big Data &amp; Analytics Group Coursework
 1. Download the [dataset](https://www.kaggle.com/eliasdabbas/web-server-access-logs?select=access.log)
 2. Normalize the dataset using `Normalize.py`
 3. Load it to ambari/hive-view and play with it.
-4. Or just play with spark. `FindBrowserPercentage.py` has an example.
+4. Or just play with spark. `RDDQueries.py` has an example.
 
 ## Normalize the dataset
 
