@@ -26,7 +26,8 @@ def main():
 
     work_dir = os.path.expanduser('~/bda-cw-workdir')
     failed_lines_file_path = os.path.join(work_dir, "failed.data")
-    output_file_path = os.path.join(work_dir, "clean.data")
+    # I changed this from clean.data to access-logs.data
+    output_file_path = os.path.join(work_dir, "access-logs.data")
 
     Path(work_dir).mkdir(parents=False, exist_ok=True)
 
