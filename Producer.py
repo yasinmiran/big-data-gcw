@@ -1,7 +1,7 @@
+import asyncio
 import sys
 
 from aiokafka import AIOKafkaProducer
-import asyncio
 
 
 async def stream_data(topic, bootstrap_servers, resource_path):
@@ -13,7 +13,7 @@ async def stream_data(topic, bootstrap_servers, resource_path):
         line = f.readline()
         while line:
             await producer.send_and_wait(topic, bytes(line, 'utf-8'))
-            await asyncio.sleep(.3)  # Every 300ms. 3 messages in 1s
+            await asyncio.sleep(2)  # Every 300ms. 3 messages in 1s
             line = f.readline()  # Next line
     finally:
         # Wait for all pending messages to be delivered or expire.

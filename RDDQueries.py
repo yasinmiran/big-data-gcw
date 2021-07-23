@@ -1,14 +1,17 @@
-from pyspark import SparkContext, SparkConf
 from operator import add
 
+from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import split, decode, col
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+from pyspark.sql.functions import split, decode, col, count, struct
+from pyspark.sql.types import StructType, StructField, StringType
 
-from analytics.functions import get_browser_category_by_ua, get_os_from_ua, get_device_from_ua, get_browser_vendor
-from analytics.udfs import toBrowserType, toOperatingSystem, toDevice, toBrowserVendor
-from utils.common import parse_line, USER_AGENT, IP_ADDR, REMOTE_USER, TIME_LOCAL, HTTP_METHOD, RESOURCE_URL, \
-    HTTP_VERSION, STATUS, BYTES_SENT, HTTP_REFERER
+from analytics.functions import get_browser_category_by_ua, get_os_from_ua
+from analytics.udfs import get_browser_category, \
+    get_operating_system, \
+    get_device_vendor, \
+    get_browser_vendor, \
+    get_client_device_type
+from utils.common import parse_line, USER_AGENT
 
 
 def main():
@@ -29,7 +32,7 @@ def main():
         .read \
         .format("text") \
         .option("header", "false") \
-        .load("/Users/yasin/bda-cw-workdir/access-logs.data")
+        .load("resources/access-logs-10k.data")
 
     # Define the schema for our access logs structured data line.
     log_schema = StructType([
@@ -51,22 +54,145 @@ def main():
         .flatMap(lambda x: x) \
         .toDF(schema=log_schema)
 
+    # We want below data: -
+    #
     # Which type of device?
     # What is the OS its running?
     # From what browser category it accessed? (normal, crawlers)
     # Different types of browser vendors?
 
-    # t1 = table.select(
-    #     toDevice(col('USER_AGENT')).getItem(0).alias("brand"),
-    #     toDevice(col('USER_AGENT')).getItem(1).alias("model"),
-    #     toOperatingSystem(col('USER_AGENT')).alias("os"),
-    #     toBrowserType(col('USER_AGENT')).alias("accessed_by"),
-    #     toBrowserVendor(col('USER_AGENT')).alias("vendor"),
-    # )
+    features = table.select(
+        get_client_device_type(col('USER_AGENT')).alias("device_type"),
+        get_device_vendor(col('USER_AGENT')).getItem(0).alias("brand"),
+        get_device_vendor(col('USER_AGENT')).getItem(1).alias("model"),
+        get_operating_system(col('USER_AGENT')).alias("os"),
+        get_browser_category(col('USER_AGENT')).alias("accessed_by"),  # Either Client or Crawler
+        get_browser_vendor(col('USER_AGENT')).alias("browser_vendor"),
+    )
 
-    ips = table.select(col('IP_ADDR')).distinct().count()
-    print("Count ", ips)
-    # t1.show(10, truncate=False)
+    # Queries
+    # ----------
+    # Let's say our Big Data Solution's Client is XYZ
+
+    # First, XYZ wants to know how many crawlers and clients
+    # access the website.
+    browser_categories = features \
+        .groupby(col("accessed_by")) \
+        .agg(count("accessed_by").alias("count")) \
+        .select(struct(col("accessed_by"), col("count")).alias("browser_categories"))
+
+    # Then XYZ want to know what types of browsers their "Clients"
+    # use. Say for example, Chrome, Edge, ...
+    types_of_vendors = features \
+        .filter(col("accessed_by") == "Crawler") \
+        .groupby(col("browser_vendor")) \
+        .agg(count("browser_vendor").alias("count")) \
+        .sort(col("count").desc()) \
+        .select(struct(col("browser_vendor"), col("count")).alias("types_of_vendors"))
+
+    # XYZ wants to know what types of Operating Systems their real customers use.
+    # Not including bots or crawlers.
+    types_of_operating_systems = features \
+        .filter(col("accessed_by") == "Crawler") \
+        .groupby(col("os")) \
+        .agg(count("os").alias("count")) \
+        .sort(col("count").desc()) \
+        .select(struct(col("os"), col("count")).alias("types_of_operating_systems"))
+
+    # XYZ wants to know what is types of device brands their clients use
+    # to access our site.
+    types_of_brands = features \
+        .filter(col("accessed_by") == "Crawler") \
+        .groupby(col("brand")) \
+        .agg(count("brand").alias("count")) \
+        .sort(col("count").desc()) \
+        .select(struct(col("brand"), col("count")).alias("types_of_brands"))
+
+    # XYZ wants to infer what type of devices they use.
+    # (Say for example iPhone 11, iPhone 12)
+    types_of_devices = features \
+        .filter(col("accessed_by") == "Crawler") \
+        .groupby(col("device_type")) \
+        .agg(count("device_type").alias("count")) \
+        .sort(col("count").desc()) \
+        .select(struct(col("device_type"), col("count")).alias("types_of_devices"))
+
+    types_of_vendors.show(truncate=False)
+    types_of_operating_systems.show(truncate=False)
+    types_of_brands.show(truncate=False)
+    types_of_devices.show(truncate=False)
+    browser_categories.show(truncate=False)
+    # writer_query.awaitTermination()
+
+    return  # BELOW is STREAMING STUFF! Use above show() functions to infer results.
+
+    # Multi query sinks
+    # -------
+    # Prepare out processed data to Kafka sink
+
+    target_sink = "access-logs-sink"
+
+    browser_categories \
+        .selectExpr("to_json(struct(*)) as value") \
+        .writeStream \
+        .queryName("StreamWriter") \
+        .format("kafka") \
+        .option("kafka.bootstrap.servers", "localhost:9092") \
+        .option("topic", target_sink) \
+        .outputMode("complete") \
+        .option("checkpointLocation", "checkpoints-dir") \
+        .start()
+
+    types_of_vendors \
+        .selectExpr("to_json(struct(*)) as value") \
+        .writeStream \
+        .queryName("StreamWriter") \
+        .format("kafka") \
+        .option("kafka.bootstrap.servers", "localhost:9092") \
+        .option("topic", target_sink) \
+        .outputMode("complete") \
+        .option("checkpointLocation", "checkpoints-dir") \
+        .start()
+
+    types_of_operating_systems \
+        .selectExpr("to_json(struct(*)) as value") \
+        .writeStream \
+        .queryName("StreamWriter") \
+        .format("kafka") \
+        .option("kafka.bootstrap.servers", "localhost:9092") \
+        .option("topic", target_sink) \
+        .outputMode("complete") \
+        .option("checkpointLocation", "checkpoints-dir") \
+        .start()
+
+    types_of_brands \
+        .selectExpr("to_json(struct(*)) as value") \
+        .writeStream \
+        .queryName("StreamWriter") \
+        .format("kafka") \
+        .option("kafka.bootstrap.servers", "localhost:9092") \
+        .option("topic", target_sink) \
+        .outputMode("complete") \
+        .option("checkpointLocation", "checkpoints-dir") \
+        .start()
+
+    types_of_devices \
+        .selectExpr("to_json(struct(*)) as value") \
+        .writeStream \
+        .queryName("StreamWriter") \
+        .format("kafka") \
+        .option("kafka.bootstrap.servers", "localhost:9092") \
+        .option("topic", "access-logs-processed") \
+        .outputMode("complete") \
+        .option("checkpointLocation", "checkpoints-dir") \
+        .start()
+
+    spark.streams.awaitAnyTermination()
+
+
+# def reduce_dataframes(dfs):
+#     return functools \
+#         .reduce(lambda df1, df2: df1.unionByName(df2, allowMissingColumns=True), dfs)
 
 
 def main2():
@@ -133,3 +259,47 @@ def main2():
 
 if __name__ == "__main__":
     main()
+
+# # First, XYZ wants to know how many crawlers and clients
+#     # access the website.
+#     browser_categories = features \
+#         .groupby(col("accessed_by")) \
+#         .agg(count("accessed_by").alias("count")) \
+#         .select(struct(col("accessed_by"), col("count")))
+#
+#     # Then XYZ want to know what types of browsers their "Clients"
+#     # use. Say for example, Chrome, Edge, ...
+#     types_of_vendors = features \
+#         .filter(col("accessed_by") == "Crawler") \
+#         .groupby(col("browser_vendor")) \
+#         .agg(count("browser_vendor").alias("count")) \
+#         .sort(col("count").desc()) \
+#         .select(struct(col("browser_vendor"), col("count"))) \
+#         .localCheckpoint()
+#
+#     # XYZ wants to know what types of Operating Systems their real customers use.
+#     # Not including bots or crawlers.
+#     types_of_operating_systems = features \
+#         .filter(col("accessed_by") == "Crawler") \
+#         .groupby(col("os")) \
+#         .agg(count("os").alias("count")) \
+#         .sort(col("count").desc()) \
+#         .select(struct(col("os"), col("count")))
+#
+#     # XYZ wants to know what is types of device brands their clients use
+#     # to access our site.
+#     types_of_brands = features \
+#         .filter(col("accessed_by") == "Crawler") \
+#         .groupby(col("brand")) \
+#         .agg(count("brand").alias("count")) \
+#         .sort(col("count").desc()) \
+#         .select(struct(col("brand"), col("count")))
+#
+#     # XYZ wants to infer what type of devices they use.
+#     # (Say for example iPhone 11, iPhone 12)
+#     types_of_devices = features \
+#         .filter(col("accessed_by") == "Crawler") \
+#         .groupby(col("device_type")) \
+#         .agg(count("device_type").alias("count")) \
+#         .sort(col("count").desc()) \
+#         .select(struct(col("device_type"), col("count")))

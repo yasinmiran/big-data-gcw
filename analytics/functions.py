@@ -1,5 +1,5 @@
-from crawlerdetect import CrawlerDetect
 import user_agents
+from crawlerdetect import CrawlerDetect
 
 
 def get_device_from_ua(user_agent_string):
@@ -25,12 +25,28 @@ def get_browser_category_by_ua(user_agent_string):
     if crawler_detect.isCrawler(user_agent_string):
         return "Client"
     else:
-        return "Crawlers"
+        return "Crawler"
 
 
-def get_browser_vendor(user_agent_string):
+def get_browser_vendor_name(user_agent_string):
     data = user_agents.parse(user_agent_string)
     return _unknown_if_empty(data.browser.family)
+
+
+def get_client_type(user_agent_string):
+    data = user_agents.parse(user_agent_string)
+    if data.is_pc:
+        return "Pc"
+    elif data.is_mobile:
+        return "Mobile"
+    elif data.is_tablet:
+        return "Tablet"
+    elif data.is_bot:
+        return "Bot or Crawler"
+    elif data.is_email_client:
+        return "Email Client"
+    else:
+        return "Unspecified"
 
 
 def _unknown_if_empty(test):

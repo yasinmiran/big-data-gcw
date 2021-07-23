@@ -72,29 +72,39 @@ on to the `venv` go get started.
 ```bash
 
 # Execute this in shell.
-source scripts/helpers.zsh && source scripts/kafka.zsh
+source scripts/activate.zsh && source venv/bin/activate
 
 # Then, to start Zookeeper & Kafka
 start_zookeeper_and_kafka
 
-# Create our Access-Logs topic
+# Create data ingest topic. This is where servers publish
+# data to ingest for Spark.
 create_kafka_topic "access-logs"
 
-# Spin up the producers.
-#
+# Create data sink topic. This is where will send transformed
+# and completed data.
+create_kafka_topic "access-logs-sink"
+
+# Spin up the producers:-
 # Note if you're not running this inside a venv then activate it!
-# source /Users/yasin/development/big-data-gcw/venv/bin/activate
+# `source venv/bin/activate`
+#
 # Alternatively you could use global pip packages as well.
 #
 # Stopping is easy as CTRL+C
+#
+# This aims to simulate servers generating streams of access logs.
+# You can execute this command to spawn multiple servers.
 python3 Producer.py ./resources/access-logs.data  
 
-# Reset everything.
-clean_kafka_environment
-
-# Create a Consumer (For debugging events)
+# Create a Consumer (For debugging events) execute below sequentially or
+# just use the convenient method `start_consuming`
 listen_to_a_topic "access-logs"
+listen_to_a_topic "access-logs-sink"
 
+# To stop and reset everything. Note that you have to manually
+# stop producers and consumers. 
+clean_environment
 ```
 
 ### Step 7 - Running Queries
