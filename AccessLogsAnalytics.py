@@ -6,7 +6,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, split, decode, udf, count
 from pyspark.sql.types import StringType
 
-from analytics.functions import test_browser
+from analytics.udfs import toBrowserType
 from utils import logging
 from utils.common import IP_ADDR, REMOTE_USER, TIME_LOCAL, HTTP_METHOD, RESOURCE_URL, HTTP_VERSION, STATUS, BYTES_SENT, \
     HTTP_REFERER, USER_AGENT
@@ -38,7 +38,7 @@ def main():
     spark = SparkSession \
         .builder \
         .appName("Access Logs Analytics Application") \
-        .master("local[2]") \
+        .master("local[3]") \
         .config("spark.streaming.stopGracefullyOnShutdown", "true") \
         .getOrCreate()
 
@@ -68,7 +68,12 @@ def main():
     kafka_df.printSchema()
 
     # Split the data by tab separator.
-    split_columns = kafka_df.select(split(decode(col("value"), "utf-8"), "\t").alias("line"))
+    split_columns = kafka_df.select(
+        split(
+            decode(col("value"), "utf-8"),
+            "\t"  # H-TAB
+        ).alias("line")
+    )
 
     # Structure the data properly. Basically, after we splitting the
     # string now we need a proper structured data frame to operate
@@ -86,10 +91,10 @@ def main():
         col("line").getItem(HTTP_REFERER).cast("string").alias("HTTP_REFERER"),
         col("line").getItem(USER_AGENT).cast("string").alias("USER_AGENT"))
 
+    # Determine browser category percentage.
     browser_types = table \
         .withColumn('USER_AGENT', toBrowserType(col('USER_AGENT'))) \
-        .groupby(col("USER_AGENT").alias("ua")) \
-        .count()
+        .groupby(col("USER_AGENT").alias("ua")).count()
 
     # query = kafka_df.writeStream \
     #     .format("text") \
@@ -109,8 +114,6 @@ def main():
     logger.warn("Listening for Kafka...")
     query.awaitTermination()
 
-
-toBrowserType = udf(test_browser, StringType())
 
 if __name__ == "__main__":
     main()
