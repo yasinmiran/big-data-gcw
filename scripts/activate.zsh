@@ -38,7 +38,7 @@ function start_zookeeper_and_kafka() {
 function clean_environment() {
   if ask "Did you stop all the 'producers' and 'consumers'?" Y; then
     npx kill-port $ZOOKEEPER_PORT $KAFKA_PORT &&
-      rm -rf kafka-logs/ output/ checkpoints/ checkpoints-dir/ spark-warehouse/
+      rm -rf kafka-logs/ output/ checkpoints*/ spark-warehouse/
   else
     echo "Stop them and run me again."
   fi
