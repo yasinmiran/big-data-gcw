@@ -77,13 +77,8 @@ source scripts/activate.zsh && source venv/bin/activate
 # Then, to start Zookeeper & Kafka
 start_zookeeper_and_kafka
 
-# Create data ingest topic. This is where servers publish
-# data to ingest for Spark.
-create_kafka_topic "access-logs"
-
-# Create data sink topic. This is where will send transformed
-# and completed data.
-create_kafka_topic "access-logs-sink"
+# Create data ingest/consume topics. Use alias `create_topics`
+create_kafka_topic "access-logs" && create_kafka_topic "access-logs-sink"
 
 # Spin up the producers:-
 # Note if you're not running this inside a venv then activate it!
@@ -98,13 +93,28 @@ create_kafka_topic "access-logs-sink"
 python3 Producer.py ./resources/access-logs.data  
 
 # Create a Consumer (For debugging events) execute below sequentially or
-# just use the convenient method `start_consuming`
-listen_to_a_topic "access-logs"
-listen_to_a_topic "access-logs-sink"
+# just use the convenient method `consume_topics`
+listen_to_a_topic "access-logs" && listen_to_a_topic "access-logs-sink"
+
+# Run the dashboard server.
+cd dashboard && npm i && node app
 
 # To stop and reset everything. Note that you have to manually
 # stop producers and consumers. 
 clean_environment
+```
+
+#### In one line
+
+```bash
+source scripts/activate.zsh && \
+  clean_environment && \
+  source venv/bin/activate &&  \
+  start_zookeeper_and_kafka  && \
+  sleep 3 && \
+  create_topics && \
+  consume_topics && \
+  cd dashboard && npm i && node app
 ```
 
 ### Step 7 - Running Queries

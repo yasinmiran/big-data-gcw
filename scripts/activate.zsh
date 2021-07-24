@@ -38,7 +38,7 @@ function start_zookeeper_and_kafka() {
 function clean_environment() {
   if ask "Did you stop all the 'producers' and 'consumers'?" Y; then
     npx kill-port $ZOOKEEPER_PORT $KAFKA_PORT &&
-      rm -rf kafka-logs/ output/ checkpoints*/ spark-warehouse/
+      rm -rf kafka-logs/ output/ checkpoints spark-warehouse/
   else
     echo "Stop them and run me again."
   fi
@@ -67,7 +67,7 @@ function create_topics() {
     create_kafka_topic "access-logs-sink"
 }
 
-function start_consuming() {
+function consume_topics() {
   npx ttab -q -t "access-logs-consumer" \
     "source scripts/activate.zsh && source venv/bin/activate && listen_to_a_topic access-logs"
   npx ttab -q -t "access-logs-sink-consumer" \

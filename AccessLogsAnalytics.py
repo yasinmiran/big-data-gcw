@@ -47,6 +47,14 @@ def main():
         .option("startingOffsets", "earliest") \
         .load()
 
+    # kafka_df is just to replicate prod data env.
+    # /Users/yasin/bda-cw-workdir/
+    # kafka_df = spark \
+        # .read \
+        # .format("text") \
+        # .option("header", "false") \
+        # .load("resources/access-logs-10k.data")
+
     logger.info("Read stream initialized...")
 
     # This is the message schema sent from kafka
@@ -176,7 +184,7 @@ def main():
         .option("kafka.bootstrap.servers", "localhost:9092") \
         .option("topic", target_sink) \
         .outputMode("complete") \
-        .option("checkpointLocation", "checkpoints-dir-01") \
+        .option("checkpointLocation", "checkpoints/checkpoints-dir-01") \
         .start()
 
     types_of_vendors.selectExpr("to_json(struct(*)) as value") \
@@ -186,7 +194,7 @@ def main():
         .option("kafka.bootstrap.servers", "localhost:9092") \
         .option("topic", target_sink) \
         .outputMode("complete") \
-        .option("checkpointLocation", "checkpoints-dir-02") \
+        .option("checkpointLocation", "checkpoints/checkpoints-dir-02") \
         .start()
 
     types_of_operating_systems.selectExpr("to_json(struct(*)) as value") \
@@ -196,7 +204,7 @@ def main():
         .option("kafka.bootstrap.servers", "localhost:9092") \
         .option("topic", target_sink) \
         .outputMode("complete") \
-        .option("checkpointLocation", "checkpoints-dir-03") \
+        .option("checkpointLocation", "checkpoints/checkpoints-dir-03") \
         .start()
 
     types_of_brands.selectExpr("to_json(struct(*)) as value") \
@@ -206,7 +214,7 @@ def main():
         .option("kafka.bootstrap.servers", "localhost:9092") \
         .option("topic", target_sink) \
         .outputMode("complete") \
-        .option("checkpointLocation", "checkpoints-dir-04") \
+        .option("checkpointLocation", "checkpoints/checkpoints-dir-04") \
         .start()
 
     types_of_devices.selectExpr("to_json(struct(*)) as value") \
@@ -216,7 +224,7 @@ def main():
         .option("kafka.bootstrap.servers", "localhost:9092") \
         .option("topic", target_sink) \
         .outputMode("complete") \
-        .option("checkpointLocation", "checkpoints-dir-05") \
+        .option("checkpointLocation", "checkpoints/checkpoints-dir-05") \
         .start()
 
     spark.streams.awaitAnyTermination()
