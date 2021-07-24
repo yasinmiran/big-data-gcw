@@ -80,7 +80,17 @@ start_zookeeper_and_kafka
 # Create data ingest/consume topics. Use alias `create_topics`
 create_kafka_topic "access-logs" && create_kafka_topic "access-logs-sink"
 
-# Spin up the producers:-
+# Create a Consumer (For debugging events) execute below sequentially or
+# just use the convenient method `consume_topics`
+listen_to_a_topic "access-logs" && listen_to_a_topic "access-logs-sink"
+
+# Run the dashboard server.
+cd dashboard && npm i && node app
+
+# Now let's start the Spark application
+spark-submit --deploy-mode client AccessLogsAnalytics.py
+
+# Then finally, spin up the producers:-
 # Note if you're not running this inside a venv then activate it!
 # `source venv/bin/activate`
 #
@@ -91,13 +101,6 @@ create_kafka_topic "access-logs" && create_kafka_topic "access-logs-sink"
 # This aims to simulate servers generating streams of access logs.
 # You can execute this command to spawn multiple servers.
 python3 Producer.py ./resources/access-logs.data  
-
-# Create a Consumer (For debugging events) execute below sequentially or
-# just use the convenient method `consume_topics`
-listen_to_a_topic "access-logs" && listen_to_a_topic "access-logs-sink"
-
-# Run the dashboard server.
-cd dashboard && npm i && node app
 
 # To stop and reset everything. Note that you have to manually
 # stop producers and consumers. 
