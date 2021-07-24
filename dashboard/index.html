@@ -2,24 +2,41 @@
 <!--suppress ALL -->
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>BDA CW Dashboard</title>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+    <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
             integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+    ></script>
+    <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"
             integrity="sha512-PU5S6BA03fRv1Q5fpwXjg5nlRrgdoguZ74urFInkbABMCENyx5oP3hrDzYMMPh3qdLdknIvrGj3yqZ4JuU7Nag=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.4.1/dist/chart.min.js"
-            integrity="sha256-GMN9UIJeUeOsn/Uq4xDheGItEeSpI5Hcfp/63GclDZk=" crossorigin="anonymous"></script>
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+    ></script>
+    <script
+            src="https://cdn.jsdelivr.net/npm/chart.js@3.4.1/dist/chart.min.js"
+            integrity="sha256-GMN9UIJeUeOsn/Uq4xDheGItEeSpI5Hcfp/63GclDZk="
+            crossorigin="anonymous"
+    ></script>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link
+            href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;600&display=swap"
+            rel="stylesheet"
+    />
+    <style>
+        * {
+            font-family: "Dosis", sans-serif;
+        }
+    </style>
 </head>
 <body>
-
 <section class="container mt-6 has-text-centered">
     <h1 class="has-weight-bold is-size-1">Advanced Big Data Analytics CW</h1>
     <h6 class="is-size-3 mb-3">Group A</h6>
@@ -29,37 +46,48 @@
 
 <section class="container mt-6 is-justify-content-center">
     <div class="columns is-centered is-multiline">
-        <div class="column is-two-fifths">
+        <div class="column is-one-third">
             <div class="box">
                 <h1 class="is-size-4 has-text-weight-bold">Browser Categories</h1>
+                <h6 id="browser_category_total_processed"></h6>
                 <hr/>
                 <canvas id="browser_category" width="400" height="400"></canvas>
             </div>
         </div>
-        <div class="column is-two-fifths">
+        <div class="column is-one-third">
             <div class="box">
                 <h1 class="is-size-4 has-text-weight-bold">Popular Brands</h1>
+                <h6 id="types_of_brands_total_processed"></h6>
                 <hr/>
                 <canvas id="types_of_brands" width="400" height="400"></canvas>
             </div>
         </div>
-        <div class="column is-two-fifths">
+        <div class="column is-one-third">
             <div class="box">
                 <h1 class="is-size-4 has-text-weight-bold">Access Devices</h1>
+                <h6 id="types_of_devices_total_processed"></h6>
                 <hr/>
                 <canvas id="types_of_devices" width="400" height="400"></canvas>
             </div>
         </div>
-        <div class="column is-two-fifths">
+        <div class="column is-one-third">
             <div class="box">
-                <h1 class="is-size-4 has-text-weight-bold">Popular Operating Systems</h1>
+                <h1 class="is-size-4 has-text-weight-bold">
+                    Popular Operating Systems
+                </h1>
+                <h6 id="types_of_operating_systems_total_processed"></h6>
                 <hr/>
-                <canvas id="types_of_operating_systems" width="400" height="400"></canvas>
+                <canvas
+                        id="types_of_operating_systems"
+                        width="400"
+                        height="400"
+                ></canvas>
             </div>
         </div>
-        <div class="column is-two-fifths">
+        <div class="column is-one-third">
             <div class="box">
                 <h1 class="is-size-4 has-text-weight-bold">Browser Vendors</h1>
+                <h6 id="types_of_vendors_total_processed"></h6>
                 <hr/>
                 <canvas id="types_of_vendors" width="400" height="400"></canvas>
             </div>
@@ -68,11 +96,20 @@
 </section>
 
 <script defer>
-
     const COLORS = [
-        '#4dc9f6', '#f67019', '#f53794',
-        '#537bc4', '#acc236', '#166a8f',
-        '#00a950', '#58595b', '#8549ba'
+        "#F94144",
+        "#43AA8B",
+        "#F9C74F",
+        "#F8961E",
+        "#90BE6D",
+        "#EEEF20",
+        "#F3722C",
+        "#F20089",
+        "#118AB2",
+        "#B100E8",
+        "#577590",
+        "#6A00F4",
+        "#F28266",
     ];
 
     function colorMapper(index) {
@@ -80,122 +117,147 @@
     }
 
     // browser_categories
-    const bc_ctx = document.getElementById('browser_category').getContext('2d');
+    const bc_ctx = document
+        .getElementById("browser_category")
+        .getContext("2d");
     const browser_category_chart = new Chart(bc_ctx, {
-        type: 'doughnut',
+        type: "doughnut",
         data: {
             labels: [],
-            datasets: [{
-                data: [],
-                labels: []
-            }]
+            datasets: [
+                {
+                    data: [],
+                    labels: [],
+                },
+            ],
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
-            plugins: {
-                legend: {position: 'bottom'},
-                title: {
-                    display: true,
-                    text: 'Browser Categories'
-                },
-            }
         },
     });
 
     // types_of_brands
-    const tob_ctx = document.getElementById('types_of_brands').getContext('2d');
+    const tob_ctx = document
+        .getElementById("types_of_brands")
+        .getContext("2d");
     const types_of_brands_chart = new Chart(tob_ctx, {
-        type: 'bar',
+        type: "bar",
         data: {
             labels: [],
-            datasets: [{
-                data: [],
-                labels: []
-            }]
+            datasets: [
+                {
+                    data: [],
+                    labels: [],
+                },
+            ],
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
             plugins: {
-                legend: {position: 'bottom'},
-                title: {
-                    display: true,
-                    text: 'Device Brand'
+                legend: false,
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return context.formattedValue;
+                        },
+                    },
                 },
-            }
+            },
         },
     });
 
     // types_of_devices
-    const tod_ctx = document.getElementById('types_of_devices').getContext('2d');
+    const tod_ctx = document
+        .getElementById("types_of_devices")
+        .getContext("2d");
     const types_of_devices_chart = new Chart(tod_ctx, {
-        type: 'bar',
+        type: "bar",
         data: {
             labels: [],
-            datasets: [{
-                data: [],
-                labels: []
-            }]
+            datasets: [
+                {
+                    data: [],
+                    labels: [],
+                },
+            ],
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
             plugins: {
-                legend: {position: 'bottom'},
-                title: {
-                    display: true,
-                    text: 'Device Type'
+                legend: false,
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return context.formattedValue;
+                        },
+                    },
                 },
-            }
+            },
         },
     });
 
     // types_of_operating_systems
-    const toos_ctx = document.getElementById('types_of_operating_systems').getContext('2d');
+    const toos_ctx = document
+        .getElementById("types_of_operating_systems")
+        .getContext("2d");
     const types_of_operating_systems_chart = new Chart(toos_ctx, {
-        type: 'bar',
+        type: "bar",
         data: {
             labels: [],
-            datasets: [{
-                data: [],
-                labels: []
-            }]
+            datasets: [
+                {
+                    data: [],
+                    labels: [],
+                },
+            ],
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
             plugins: {
-                legend: {position: 'bottom'},
-                title: {
-                    display: true,
-                    text: 'Operating Systems'
+                legend: false,
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return context.formattedValue;
+                        },
+                    },
                 },
-            }
+            },
         },
     });
 
     // types_of_vendors
-    const tov_ctx = document.getElementById('types_of_vendors').getContext('2d');
+    const tov_ctx = document
+        .getElementById("types_of_vendors")
+        .getContext("2d");
     const types_of_vendors_chart = new Chart(tov_ctx, {
-        type: 'bar',
+        type: "bar",
         data: {
             labels: [],
-            datasets: [{
-                data: [],
-                labels: []
-            }]
+            datasets: [
+                {
+                    data: [],
+                    labels: [],
+                },
+            ],
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
             plugins: {
-                legend: {position: 'bottom'},
-                title: {
-                    display: true,
-                    text: 'Browser Vendors'
+                legend: false,
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return context.formattedValue;
+                        },
+                    },
                 },
-            }
+            },
         },
     });
 
@@ -204,10 +266,14 @@
         const newLabels = [...Object.keys(value.browser_categories)];
         const newData = [...Object.values(value.browser_categories)];
         data.labels = newLabels;
-        data.datasets = [{
-            data: newData,
-            backgroundColor: newData.map((_, i) => colorMapper(i))
-        }];
+        data.datasets = [
+            {
+                data: newData,
+                backgroundColor: newData.map((_, i) => colorMapper(i)),
+            },
+        ];
+        document.getElementById("browser_category_total_processed").innerHTML =
+            "Processed Count: " + count_all(newData);
         browser_category_chart.update();
     }
 
@@ -215,11 +281,16 @@
         const data = types_of_brands_chart.data;
         const newLabels = [...Object.keys(value.types_of_brands)];
         const newData = [...Object.values(value.types_of_brands)];
-        data.datasets = [{
-            data: newData,
-            label: newLabels,
-            backgroundColor: newData.map((_, i) => colorMapper(i))
-        }];
+        data.labels = newLabels;
+        data.datasets = [
+            {
+                data: newData,
+                label: newLabels,
+                backgroundColor: newData.map((_, i) => colorMapper(i)),
+            },
+        ];
+        document.getElementById("types_of_brands_total_processed").innerHTML =
+            "Processed Count: " + count_all(newData);
         types_of_brands_chart.update();
     }
 
@@ -228,11 +299,15 @@
         const newLabels = [...Object.keys(value.types_of_devices)];
         const newData = [...Object.values(value.types_of_devices)];
         data.labels = newLabels;
-        data.datasets = [{
-            data: newData,
-            label: newLabels,
-            backgroundColor: newData.map((_, i) => colorMapper(i))
-        }];
+        data.datasets = [
+            {
+                data: newData,
+                label: newLabels,
+                backgroundColor: newData.map((_, i) => colorMapper(i)),
+            },
+        ];
+        document.getElementById("types_of_devices_total_processed").innerHTML =
+            "Processed Count: " + count_all(newData);
         types_of_devices_chart.update();
     }
 
@@ -241,12 +316,16 @@
         const newLabels = [...Object.keys(value.types_of_operating_systems)];
         const newData = [...Object.values(value.types_of_operating_systems)];
         data.labels = newLabels;
-        data.datasets = [{
-            data: newData,
-            label: newLabels,
-
-            backgroundColor: newData.map((_, i) => colorMapper(i))
-        }];
+        data.datasets = [
+            {
+                data: newData,
+                label: newLabels,
+                backgroundColor: newData.map((_, i) => colorMapper(i)),
+            },
+        ];
+        document.getElementById(
+            "types_of_operating_systems_total_processed"
+        ).innerHTML = "Processed Count: " + count_all(newData);
         types_of_operating_systems_chart.update();
     }
 
@@ -255,44 +334,40 @@
         const newLabels = [...Object.keys(value.types_of_vendors)];
         const newData = [...Object.values(value.types_of_vendors)];
         data.labels = newLabels;
-        data.datasets = [{
-            data: newData,
-            label: newLabels,
-            backgroundColor: newData.map((_, i) => colorMapper(i))
-        }];
+        data.datasets = [
+            {
+                data: newData,
+                label: newLabels,
+                backgroundColor: newData.map((_, i) => colorMapper(i)),
+            },
+        ];
+        document.getElementById("types_of_vendors_total_processed").innerHTML =
+            "Processed Count: " + count_all(newData);
         types_of_vendors_chart.update();
     }
 
-    const socket = io('http://localhost:5005');
-    socket.on('XYZ_DATA', (value) => {
-        refresh_browser_category(value);
-        refresh_types_of_brands(value);
-        refresh_types_of_devices(value);
-        refresh_types_of_os(value);
-        refresh_types_of_vendors(value);
+    function count_all(nums) {
+        return nums.reduce((acc, c) => acc + c, 0);
+    }
+
+    const socket = io("http://localhost:5005");
+    socket.on("XYZ_DATA", (value) => {
+        if ("browser_categories" in value) {
+            refresh_browser_category(value);
+        }
+        if ("types_of_vendors" in value) {
+            refresh_types_of_vendors(value);
+        }
+        if ("types_of_operating_systems" in value) {
+            refresh_types_of_os(value);
+        }
+        if ("types_of_brands" in value) {
+            refresh_types_of_brands(value);
+        }
+        if ("types_of_devices" in value) {
+            refresh_types_of_devices(value);
+        }
     });
-
-    // browser_categories: {Crawler: 1137, Client: 602}
-    // types_of_brands: {Samsung: 151, Apple: 349, undefined: 0, Huawei: 72, LG: 18}
-    // types_of_devices: {Mobile: 614, Pc: 408, Tablet: 46, Unspecified: 10}
-    // types_of_operating_systems: {Android: 328, iOS: 339, Windows: 392, Mac OS X: 10, Linux: 6}
-    // types_of_vendors: {Chrome Mobile: 174, Samsung Internet: 9, Mobile Safari: 287, Firefox: 221, Safari: 10}
-
-    // const series = [
-    //     {browser_categories: {Crawler: 13, Client: 602}},
-    //     {browser_categories: {Crawler: 888, Client: 700}},
-    //     {browser_categories: {Crawler: 999, Client: 700}},
-    //     {browser_categories: {Crawler: 1001, Client: 800}},
-    //     {browser_categories: {Crawler: 1100, Client: 900}},
-    //     {browser_categories: {Crawler: 1220, Client: 1000}},
-    //     {browser_categories: {Crawler: 1450, Client: 1200}},
-    // ]
-    // setInterval(() => {
-    //     if (series.length)
-    //         refresh_browser_category(series.pop());
-    // }, 2000)
-
 </script>
-
 </body>
 </html>
