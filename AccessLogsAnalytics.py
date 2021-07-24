@@ -153,6 +153,7 @@ def main():
         .groupby(col("brand")) \
         .agg(count("brand").alias("count")) \
         .sort(col("count").desc()) \
+        .filter(col("brand").isNotNull()) \
         .select(struct(col("brand"), col("count")).alias("types_of_brands"))
 
     # XYZ wants to infer what type of devices they use.
