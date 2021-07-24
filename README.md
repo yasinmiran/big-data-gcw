@@ -1,6 +1,12 @@
 # big-data-gcw
 
-Big Data &amp; Analytics Group Coursework
+Big Data &amp; Analytics Group Coursework. A real time stream processing big data application using Kafka, Spark (pyspark), and NodeJS!
+ 
+![ds](https://user-images.githubusercontent.com/25561152/126877551-b4a06c6f-1e95-4955-952a-051a96c048c1.gif)
+
+# High Level Architecture
+
+![arch_final](https://user-images.githubusercontent.com/25561152/126877577-32d6f1ab-97fa-49b4-9f4c-fe44669cefec.png)
 
 ## Playing \w Ambari
 
