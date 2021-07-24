@@ -102,6 +102,9 @@ spark-submit --deploy-mode client AccessLogsAnalytics.py
 # You can execute this command to spawn multiple servers.
 python3 Producer.py ./resources/access-logs.data  
 
+# Now you can open the dashboard/index.html file in your browser.
+# to check the dashboard getting updated real-time.
+
 # To stop and reset everything. Note that you have to manually
 # stop producers and consumers. 
 clean_environment
