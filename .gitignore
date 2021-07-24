@@ -9,3 +9,4 @@ output/
 checkpoints*
 spark-warehouse/
 *.pyc
+.DS_Store

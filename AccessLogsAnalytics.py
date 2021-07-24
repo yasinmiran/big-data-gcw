@@ -50,10 +50,10 @@ def main():
     # kafka_df is just to replicate prod data env.
     # /Users/yasin/bda-cw-workdir/
     # kafka_df = spark \
-        # .read \
-        # .format("text") \
-        # .option("header", "false") \
-        # .load("resources/access-logs-10k.data")
+    # .read \
+    # .format("text") \
+    # .option("header", "false") \
+    # .load("resources/access-logs-10k.data")
 
     logger.info("Read stream initialized...")
 
