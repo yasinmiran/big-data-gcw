@@ -4,3 +4,8 @@
 .log
 *logs
 venv
+kafka-logs/
+output/
+checkpoints*
+spark-warehouse/
+*.pyc
