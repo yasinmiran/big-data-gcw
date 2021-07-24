@@ -8,4 +8,4 @@ kafka-logs/
 output/
 checkpoints*
 spark-warehouse/
-__pycache__
+*.pyc
