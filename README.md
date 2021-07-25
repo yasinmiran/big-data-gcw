@@ -29,7 +29,7 @@ demo this as a structured data oriented solution.)
 
 # CW Implementation
 
-Ambari is garbage. We will use Spark how it intended used in real world production environments. It's best if you can
+We will use Spark how it intended used in real world production environments. It's best if you can
 use a `linux` or a `macOS` machine.
 
 ### Step 0 - Clone this repo.
