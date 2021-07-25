@@ -24,7 +24,7 @@ def main():
     else:
         dry_run_limit = math.inf
 
-    work_dir = os.path.expanduser('~/bda-cw-workdir-2')
+    work_dir = os.path.expanduser('~/bda-cw-workdir')
     failed_lines_file_path = os.path.join(work_dir, "failed.data")
     # I changed this from clean.data to access-logs.data
     output_file_path = os.path.join(work_dir, "access-logs.data")
