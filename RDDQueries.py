@@ -32,7 +32,7 @@ def main():
         .read \
         .format("text") \
         .option("header", "false") \
-        .load("resources/access-logs-10k.data")
+        .load("/Users/yasin/bda-cw-workdir/access-logs.data")
 
     # Define the schema for our access logs structured data line.
     log_schema = StructType([
@@ -78,10 +78,10 @@ def main():
     # access the website.
     browser_categories = features \
         .groupby(col("accessed_by")) \
-        .agg(count("accessed_by").alias("count")) \
+        .agg(count(col("accessed_by")).alias("count")) \
         .select(struct(col("accessed_by"), col("count")).alias("browser_categories"))
 
-    # Then XYZ want to know what types of browsers their "Clients"
+    # Then XYZ wants to know what types of browsers their "Clients"
     # use. Say for example, Chrome, Edge, ...
     types_of_vendors = features \
         .filter(col("accessed_by") == "Crawler") \
@@ -106,6 +106,7 @@ def main():
         .groupby(col("brand")) \
         .agg(count("brand").alias("count")) \
         .sort(col("count").desc()) \
+        .filter(col("brand").isNotNull()) \
         .select(struct(col("brand"), col("count")).alias("types_of_brands"))
 
     # XYZ wants to infer what type of devices they use.
@@ -124,70 +125,70 @@ def main():
     browser_categories.show(truncate=False)
     # writer_query.awaitTermination()
 
-    return  # BELOW is STREAMING STUFF! Use above show() functions to infer results.
+    # return  # BELOW is STREAMING STUFF! Use above show() functions to infer results.
 
     # Multi query sinks
     # -------
     # Prepare out processed data to Kafka sink
 
-    target_sink = "access-logs-sink"
-
-    browser_categories \
-        .selectExpr("to_json(struct(*)) as value") \
-        .writeStream \
-        .queryName("StreamWriter") \
-        .format("kafka") \
-        .option("kafka.bootstrap.servers", "localhost:9092") \
-        .option("topic", target_sink) \
-        .outputMode("complete") \
-        .option("checkpointLocation", "checkpoints-dir") \
-        .start()
-
-    types_of_vendors \
-        .selectExpr("to_json(struct(*)) as value") \
-        .writeStream \
-        .queryName("StreamWriter") \
-        .format("kafka") \
-        .option("kafka.bootstrap.servers", "localhost:9092") \
-        .option("topic", target_sink) \
-        .outputMode("complete") \
-        .option("checkpointLocation", "checkpoints-dir") \
-        .start()
-
-    types_of_operating_systems \
-        .selectExpr("to_json(struct(*)) as value") \
-        .writeStream \
-        .queryName("StreamWriter") \
-        .format("kafka") \
-        .option("kafka.bootstrap.servers", "localhost:9092") \
-        .option("topic", target_sink) \
-        .outputMode("complete") \
-        .option("checkpointLocation", "checkpoints-dir") \
-        .start()
-
-    types_of_brands \
-        .selectExpr("to_json(struct(*)) as value") \
-        .writeStream \
-        .queryName("StreamWriter") \
-        .format("kafka") \
-        .option("kafka.bootstrap.servers", "localhost:9092") \
-        .option("topic", target_sink) \
-        .outputMode("complete") \
-        .option("checkpointLocation", "checkpoints-dir") \
-        .start()
-
-    types_of_devices \
-        .selectExpr("to_json(struct(*)) as value") \
-        .writeStream \
-        .queryName("StreamWriter") \
-        .format("kafka") \
-        .option("kafka.bootstrap.servers", "localhost:9092") \
-        .option("topic", "access-logs-processed") \
-        .outputMode("complete") \
-        .option("checkpointLocation", "checkpoints-dir") \
-        .start()
-
-    spark.streams.awaitAnyTermination()
+    # target_sink = "access-logs-sink"
+    #
+    # browser_categories \
+    #     .selectExpr("to_json(struct(*)) as value") \
+    #     .writeStream \
+    #     .queryName("StreamWriter") \
+    #     .format("kafka") \
+    #     .option("kafka.bootstrap.servers", "localhost:9092") \
+    #     .option("topic", target_sink) \
+    #     .outputMode("complete") \
+    #     .option("checkpointLocation", "checkpoints-dir") \
+    #     .start()
+    #
+    # types_of_vendors \
+    #     .selectExpr("to_json(struct(*)) as value") \
+    #     .writeStream \
+    #     .queryName("StreamWriter") \
+    #     .format("kafka") \
+    #     .option("kafka.bootstrap.servers", "localhost:9092") \
+    #     .option("topic", target_sink) \
+    #     .outputMode("complete") \
+    #     .option("checkpointLocation", "checkpoints-dir") \
+    #     .start()
+    #
+    # types_of_operating_systems \
+    #     .selectExpr("to_json(struct(*)) as value") \
+    #     .writeStream \
+    #     .queryName("StreamWriter") \
+    #     .format("kafka") \
+    #     .option("kafka.bootstrap.servers", "localhost:9092") \
+    #     .option("topic", target_sink) \
+    #     .outputMode("complete") \
+    #     .option("checkpointLocation", "checkpoints-dir") \
+    #     .start()
+    #
+    # types_of_brands \
+    #     .selectExpr("to_json(struct(*)) as value") \
+    #     .writeStream \
+    #     .queryName("StreamWriter") \
+    #     .format("kafka") \
+    #     .option("kafka.bootstrap.servers", "localhost:9092") \
+    #     .option("topic", target_sink) \
+    #     .outputMode("complete") \
+    #     .option("checkpointLocation", "checkpoints-dir") \
+    #     .start()
+    #
+    # types_of_devices \
+    #     .selectExpr("to_json(struct(*)) as value") \
+    #     .writeStream \
+    #     .queryName("StreamWriter") \
+    #     .format("kafka") \
+    #     .option("kafka.bootstrap.servers", "localhost:9092") \
+    #     .option("topic", "access-logs-processed") \
+    #     .outputMode("complete") \
+    #     .option("checkpointLocation", "checkpoints-dir") \
+    #     .start()
+    #
+    # spark.streams.awaitAnyTermination()
 
 
 # def reduce_dataframes(dfs):
