@@ -34,7 +34,7 @@ use a `linux` or a `macOS` machine.
 
 ### Step 0 - Clone this repo.
 
-- Don't just download. Use `git clone` with `ssh` or `https`.
+- Use `git clone` with `ssh` or `https`.
 
 ### Step 1 - Java
 
