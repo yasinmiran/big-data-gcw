@@ -60,6 +60,8 @@ def main():
     # This is the message schema sent from kafka
     kafka_df.printSchema()
 
+    # ------------
+
     # Define the schema for our access logs structured data line.
     # log_schema = StructType([
     #     StructField("IP_ADDR", StringType(), True),
@@ -80,12 +82,7 @@ def main():
     #     .flatMap(lambda x: x) \
     #     .toDF(schema=log_schema)
 
-    # We want below data: -
-    #
-    # Which type of device?
-    # What is the OS its running?
-    # From what browser category it accessed? (normal, crawlers)
-    # Different types of browser vendors?
+    # ------------
 
     # Split the data by tab separator.
     split_columns = kafka_df.select(split(decode(col("value"), "utf-8"), "\t").alias("line"))
@@ -106,8 +103,10 @@ def main():
         col("line").getItem(HTTP_REFERER).cast("string").alias("HTTP_REFERER"),
         col("line").getItem(USER_AGENT).cast("string").alias("USER_AGENT"))
 
+    # Print the transformed schema.
     table.printSchema()
 
+    # Select the required columns.
     features = table.select(
         get_client_device_type('USER_AGENT').alias("device_type"),
         get_device_vendor('USER_AGENT').getItem(0).alias("brand"),
@@ -157,7 +156,7 @@ def main():
         .select(struct(col("brand"), col("count")).alias("types_of_brands"))
 
     # XYZ wants to infer what type of devices they use.
-    # (Say for example iPhone 11, iPhone 12)
+    # (Say for example Pc, Tablet, Mobile)
     types_of_devices = features \
         .filter(col("accessed_by") == "Crawler") \
         .groupby(col("device_type")) \
